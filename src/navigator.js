@@ -3,6 +3,22 @@
 import { createClient as webdavClient } from "webdav";
 import { LitElement, html, css } from "lit-element";
 
+
+function matchHashOr(expression, defaultValue) {
+	const matched = window.location.hash.match(expression);
+	if (Array.isArray(matched) && matched.length == 2) {
+		return matched[1];
+	}
+	return defaultValue;
+}
+
+function stop(event) {
+	if(event !== undefined) {
+		event.preventDefault();
+		event.stopPropagation();
+	}
+}
+
 class Navigator extends LitElement {
 	
 	constructor() {
@@ -11,16 +27,16 @@ class Navigator extends LitElement {
 		this.content = [];  // content of current directory (denoted by path)
 		this.crumbs = []; // breadcrumbs-like navigation derived from path
 		this.open = (f, c) => console.log("Function open was not assigned!");
-		this.username = "";
-		this.password = "";
-		this.url = "";
+		this.username = matchHashOr(/username=(\w+)/, "");
+		this.password = matchHashOr(/password=(\w+)/, "");
+		this.url = matchHashOr(/url=(\w+)/, "https://");
 		this.connected = false;
 		this.path = "";
 	}
 
 	static get properties() {
 		return {
-			username: {type: String, reflect: true},
+			username: {type: String},
 			password: {type: String},
 			url: {type: String},
 			path: {type: String},
@@ -30,25 +46,23 @@ class Navigator extends LitElement {
 	}
 
 	connect(event) {
-		event.preventDefault();
-		event.stopPropagation();
-		this.username = (this.shadowRoot.querySelector('form')['username']).value;
-		this.password = (this.shadowRoot.querySelector('form')['password']).value;
-		this.url = (this.shadowRoot.querySelector('form')['url']).value;
+		stop(event);
+		this.username = (event.target['username']).value;
+		this.password = (event.target['password']).value;
+		this.url = (event.target['url']).value;
 		this.client = webdavClient(this.url, {"username": this.username, "password": this.password});
 		this.client.getDirectoryContents(this.path)
-			.then(content => {console.log(content); this.content = content; this.connected = true}, // important that connected is the last statement?
+			.then(content => {this.content = content; this.connected = true}, // important that connected is the last statement?
 			      () => console.log("Invalid credentials!"))
 	}
 
 	save(filename, content) {
 		return this.client.putFileContents(filename, content);
 	}
-
-	navigate(item, e) {
-		var navigator = this;
-		e.preventDefault();
-		e.stopPropagation();
+	
+	navigate(item, event) {
+		const navigator = this;
+		stop(event);
 		if(item.type == "directory") {
 			let acc="";
 			if(item.filename == "/") {item.filename = ""; }
@@ -69,6 +83,24 @@ class Navigator extends LitElement {
     		super.attributeChangedCallback(name, oldval, newval);
   	}
 	
+	async newContentHandler(event) {
+		stop(event);
+		return this.newContent(event.target["name"].value)/*.then(
+			() => this.navigate({filename: this.path, type: "directory"}),
+			error => console.log("Filed to create new content!", error))*/;
+	}
+	
+	async newContent(name) {
+		const filePath = this.path + "/" + name;
+		console.log("Creating " + filePath);
+		if(name.indexOf(".") > 0) {
+			// create file if the name contains "."
+			return this.save(filePath, "");
+		} else {
+			return this.client.createDirectory(filePath);
+		}
+	}
+	
 	render() {
 		return html`
 			<style>
@@ -77,14 +109,15 @@ class Navigator extends LitElement {
 			${this.connected?
 				html`${this.crumbs.map(item => html`<a href="" @click="${(e) => this.navigate(item, e)}">${item.basename}/</a>`)}`:
 				html`
-				<form>
+				<form @submit="${this.connect}">
 				<input type="text" name="username" placeholder="username" value="${this.username}" />
 				<input type="password" name="password" placeholder="password" value="${this.password}" />
 				<input type="text" name="url" placeholder="WebDAV URL (including https://)" value="${this.url}" />
-				<input type="submit" value="Connect" @click="${this.connect}" />
+				<input type="submit" value="Connect" />
 				</form>`}
 			<ul>
 				${this.content.map(item => html`<li><a href="" @click="${(e) => this.navigate(item, e)}">${item.basename}</a></li>`)}
+				${this.connected?html`<li><form @submit=${this.newContentHandler}><input type="text" name="name"></form></li>`:html``}
 			</ul>
 		`;
 	}

@@ -4,6 +4,7 @@ import CodeMirror from 'codemirror';
 
 import "../node_modules/codemirror/mode/javascript/javascript.js";
 import "../node_modules/codemirror/mode/htmlmixed/htmlmixed.js";
+import "../node_modules/codemirror/addon/edit/matchbrackets.js";
 
 class Editor extends LitElement {
 
@@ -52,6 +53,7 @@ class Editor extends LitElement {
   				"indentUnit": 4,
  				"indentWithTabs": true,
 				"lineNumbers": true,
+				"matchBrackets": true,
 				"mode": filename.endsWith(".js")?"javascript":
 					filename.endsWith(".html")?"htmlmixed":
 					"text"});
