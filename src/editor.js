@@ -1,10 +1,11 @@
 import {LitElement, html} from "lit-element";
-import EasyMDE from "easymde";
+// import EasyMDE from "easymde";
 import CodeMirror from 'codemirror';
 
 import "../node_modules/codemirror/mode/javascript/javascript.js";
 import "../node_modules/codemirror/mode/htmlmixed/htmlmixed.js";
 import "../node_modules/codemirror/addon/edit/matchbrackets.js";
+
 
 class Editor extends LitElement {
 
@@ -12,104 +13,75 @@ class Editor extends LitElement {
 		super();
 		this.filename = null;
 		this.dirty = false;
-		this.mdEditor = null;
-		this.codeEditor = null;
 		this.editor = null;
-		this.styles = [];
+		document.addEventListener("file:open", this.open.bind(this));
 	}
 
-	static get properties() {
-		return {
-			"save": {type: Function, "reflect": false},
-			"styles": {type: Array, "attribute": false}
-		}
-	}
-	
 	get textarea() {
 		return this.shadowRoot.querySelector('textarea');
 	}
 
-	async open(filename, content) {
-		this.close();  // close any previous file
-		this.filename = filename;
+	open(event) {
+		if(this.isDirty && confirm("You have unsaved changes. Save now?")) this.save();
+		this.filename = event.detail.filename;
 		console.log("Requested to open " + filename);
-		if(filename.endsWith(".md")) {
- 			this.styles = ["font-awesome.min.css", "codemirror.css", "easymde.min.css"]
-			await this.updateComplete; // wait for rendering
-			this.mdEditor = new EasyMDE({
-				"autofocus": true,
-				"lineWrapping": false,
-				"element": this.shadowRoot.querySelector("textarea"),
-				"autosave": {"enabled": true, "uniqueId": filename},
-				"lineNumbers": true});
-			this.mdEditor.value(content);
-			this.editor = this.mdEditor;
-		} else {
-			this.styles = ["font-awesome.min.css", "codemirror.css"]
-			await this.updateComplete; // wait for rendering
-			this.codeEditor = CodeMirror.fromTextArea(this.textarea, {
-				"readOnly": false,
-				"dragDrop": false,
-  				"indentUnit": 4,
- 				"indentWithTabs": true,
-				"lineNumbers": true,
-				"matchBrackets": true,
-				"mode": filename.endsWith(".js")?"javascript":
-					filename.endsWith(".html")?"htmlmixed":
-					"text"});
-            this.codeEditor.setSize(null, "95vh");
-			this.codeEditor.getDoc().setValue(content);
-			this.codeEditor.refresh();
-			this.editor = this.codeEditor;
-		}
+		this.styles = ["font-awesome.min.css", "codemirror.css"]
+		await this.updateComplete; // wait for rendering
+		this.editor = CodeMirror.fromTextArea(this.textarea, {
+			"readOnly": false,
+			"dragDrop": false,
+			"indentUnit": 4,
+			"indentWithTabs": true,
+			"lineNumbers": true,
+			"matchBrackets": true,
+			"mode": filename.endsWith(".js")?"javascript":
+				filename.endsWith(".html")?"htmlmixed":
+				"text"});
+		this.editor.setSize(null, "95vh");
+		this.editor.getDoc().setValue(content);
+		this.editor.refresh();
 	}
 
-	submit(event) {
+	save(event) {
+		this.swallow(event);
 		console.log("Saving file " + this.filename);
-		if(event !== undefined) {
-			event.preventDefault();
-			event.stopPropagation();
-		}
-		if(this.mdEditor != null) {
-			this.save(this.filename, this.mdEditor.value());
-		}
-		if(this.codeEditor != null) {
-			this.save(this.filename, this.codeEditor.getValue());
-		}
+		let customEvent = new CustomEvent("navigator:save", { detail: {
+			filename: this.filename,
+			content: this.editor.getValue()
+		}});
+		document.dispatchEvent(customEvent);
 		this.dirty = false;
 	}
 
 	close(event) {
-		if(event !== undefined) {
-			event.preventDefault();
-			event.stopPropagation();
-		}
-		if(this.mdEditor != null) {
-			this.mdEditor.toTextArea();
-			this.mdEditor = null;
-		}
-		if(this.codeEditor != null) {
-			this.codeEditor.toTextArea();
-			this.codeEditor = null;
-		}
+		this.swallow(event);
+		if(this.isDirty && confirm("You have unsaved changes. Save now?")) this.save();
+		this.editor.toTextArea();
 		this.textarea.value = "";
-		this.editor = null;
 		this.styles = [];
 	}
 
 	render() {
 		return html`
-			${this.styles.map(style => html`<link rel="stylesheet" href="css/${style}">`)}
+			<link rel="stylesheet" href="css/font-awesome.min.css">
+			<link rel="stylesheet" href="css/codemirror.css">
 			<style>
 				form > textarea {width: 100%; height: 95vh}
 				form > button { display: inline-block; font-size: 15pt; width: 70%; margin: 5pt}
-				form > button + button {width: 20%} 
+				form > button + button {width: 20%}
 			</style>
 			<form>
 			<textarea></textarea>
-			<button @click=${this.submit}>Save content</button>
+			<button @click=${this.save}>Save content</button>
 			<button @click=${this.close}>Discard</button>
 			</form>`;
+	}
+
+	swallow(event) {
+		if(event !== undefined) {
+			event.preventDefault();
+			event.stopPropagation();
+		}
 	}
 }
 
