@@ -22,22 +22,23 @@ class Editor extends LitElement {
 	}
 
 	open(event) {
-		if(this.isDirty && confirm("You have unsaved changes. Save now?")) this.save();
-		this.filename = event.detail.filename;
-		console.log("Requested to open " + filename);
-		this.styles = ["font-awesome.min.css", "codemirror.css"]
-		await this.updateComplete; // wait for rendering
-		this.editor = CodeMirror.fromTextArea(this.textarea, {
-			"readOnly": false,
-			"dragDrop": false,
-			"indentUnit": 4,
-			"indentWithTabs": true,
-			"lineNumbers": true,
-			"matchBrackets": true,
-			"mode": filename.endsWith(".js")?"javascript":
-				filename.endsWith(".html")?"htmlmixed":
-				"text"});
-		this.editor.setSize(null, "95vh");
+		let {filename, content} = event.detail;
+		this.filename = filename;
+		if(this.editor === null) {
+			this.editor = CodeMirror.fromTextArea(this.textarea, {
+				"readOnly": false,
+				"dragDrop": false,
+				"indentUnit": 4,
+				"indentWithTabs": true,
+				"lineNumbers": true,
+				"matchBrackets": true});
+			this.editor.setSize(null, "95vh");
+		} else {
+			if(this.isDirty && confirm("You have unsaved changes. Save now?")) this.save();
+		}
+		if(filename.endsWith(".js")) this.editor.setOption("mode", "javascript");
+		else if(filename.endsWith(".html")) this.editor.setOption("mode", "htmlmixed");
+		else this.editor.setOption("mode", "text");
 		this.editor.getDoc().setValue(content);
 		this.editor.refresh();
 	}
@@ -55,6 +56,7 @@ class Editor extends LitElement {
 
 	close(event) {
 		this.swallow(event);
+		if(this.editor === null) return;
 		if(this.isDirty && confirm("You have unsaved changes. Save now?")) this.save();
 		this.editor.toTextArea();
 		this.textarea.value = "";
