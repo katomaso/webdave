@@ -20,18 +20,20 @@ function stop(event) {
 }
 
 class Navigator extends LitElement {
-	
+
 	constructor() {
 		super();
 		this.client = null;
 		this.content = [];  // content of current directory (denoted by path)
 		this.crumbs = []; // breadcrumbs-like navigation derived from path
-		this.open = (f, c) => console.log("Function open was not assigned!");
+
 		this.username = matchHashOr(/username=(\w+)/, "");
 		this.password = matchHashOr(/password=(\w+)/, "");
 		this.url = matchHashOr(/url=(\w+)/, "https://");
 		this.connected = false;
 		this.path = "";
+
+		document.addEventListener("file:save", this.save.bind(this));
 	}
 
 	static get properties() {
@@ -52,14 +54,23 @@ class Navigator extends LitElement {
 		this.url = (event.target['url']).value;
 		this.client = webdavClient(this.url, {"username": this.username, "password": this.password});
 		this.client.getDirectoryContents(this.path)
-			.then(content => {this.content = content; this.connected = true}, // important that connected is the last statement?
-			      () => console.log("Invalid credentials!"))
+			.then(
+				content => {this.content = content; this.connected = true}, // important that connected is the last statement?
+				error => console.log(error));
 	}
 
-	save(filename, content) {
+	open(filename, content) {
+		let e = new CustomEvent("file:open", {detail : {
+			filename: filename, content: content
+		}});
+		document.dispatchEvent(e);
+	}
+
+	save(event) {
+		let {filename, content} = event.detail;
 		return this.client.putFileContents(filename, content);
 	}
-	
+
 	navigate(item, event) {
 		const navigator = this;
 		stop(event);
@@ -79,17 +90,17 @@ class Navigator extends LitElement {
 	}
 
 	attributeChangedCallback(name, oldval, newval) {
-   		console.log(name + ' change: ', newval);
-    		super.attributeChangedCallback(name, oldval, newval);
-  	}
-	
+		console.log(name + ' change: ', newval);
+			super.attributeChangedCallback(name, oldval, newval);
+	}
+
 	async newContentHandler(event) {
 		stop(event);
 		return this.newContent(event.target["name"].value)/*.then(
 			() => this.navigate({filename: this.path, type: "directory"}),
 			error => console.log("Filed to create new content!", error))*/;
 	}
-	
+
 	async newContent(name) {
 		const filePath = this.path + "/" + name;
 		console.log("Creating " + filePath);
@@ -100,7 +111,7 @@ class Navigator extends LitElement {
 			return this.client.createDirectory(filePath);
 		}
 	}
-	
+
 	render() {
 		return html`
 			<style>

@@ -45,7 +45,7 @@ class Editor extends LitElement {
 	save(event) {
 		this.swallow(event);
 		console.log("Saving file " + this.filename);
-		let customEvent = new CustomEvent("navigator:save", { detail: {
+		let customEvent = new CustomEvent("file:save", { detail: {
 			filename: this.filename,
 			content: this.editor.getValue()
 		}});
