@@ -66,7 +66,7 @@ class Navigator extends LitElement {
 		document.dispatchEvent(e);
 	}
 
-	save(event) {
+	async save(event) {
 		let {filename, content} = event.detail;
 		return this.client.putFileContents(filename, content);
 	}
@@ -106,7 +106,7 @@ class Navigator extends LitElement {
 		console.log("Creating " + filePath);
 		if(name.indexOf(".") > 0) {
 			// create file if the name contains "."
-			return this.save(filePath, "");
+			return this.save({detail: {filename: filePath, content: ""}});
 		} else {
 			return this.client.createDirectory(filePath);
 		}
