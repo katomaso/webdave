@@ -9,9 +9,6 @@
     "lit-element": "^2.2.1",
     "webdav": "^2.5.0"
   },
-  "scripts": {
-    "build": "./node_modules/.bin/webpack --config webpack.config.js"
-  },
   "devDependencies": {
     "copy-webpack-plugin": "^5.0.5",
     "express": "^4.17.1",
