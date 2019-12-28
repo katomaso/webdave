@@ -17,11 +17,18 @@ class Editor extends LitElement {
 		document.addEventListener("file:open", this.open.bind(this));
 	}
 
+	static get properties() {
+		return {
+			dirty: {type: Boolean, reflect: false, attribute: false}
+		}
+	}
+
 	get textarea() {
 		return this.shadowRoot.querySelector('textarea');
 	}
 
 	open(event) {
+		const self = this;
 		let {filename, content} = event.detail;
 		this.filename = filename;
 		if(this.editor === null) {
@@ -33,8 +40,9 @@ class Editor extends LitElement {
 				"lineNumbers": true,
 				"matchBrackets": true});
 			this.editor.setSize(null, "95vh");
+			this.editor.on("change", () => self.dirty=true);
 		} else {
-			if(this.isDirty && confirm("You have unsaved changes. Save now?")) this.save();
+			if(this.dirty && confirm("You have unsaved changes. Save now?")) this.save();
 		}
 		if(filename.endsWith(".js")) this.editor.setOption("mode", "javascript");
 		else if(filename.endsWith(".html")) this.editor.setOption("mode", "htmlmixed");
@@ -57,7 +65,7 @@ class Editor extends LitElement {
 	close(event) {
 		this.swallow(event);
 		if(this.editor === null) return;
-		if(this.isDirty && confirm("You have unsaved changes. Save now?")) this.save();
+		if(this.dirty && confirm("You have unsaved changes. Save now?")) this.save();
 		this.editor.toTextArea();
 		this.textarea.value = "";
 		this.styles = [];
@@ -74,7 +82,10 @@ class Editor extends LitElement {
 			</style>
 			<form>
 			<textarea></textarea>
-			<button @click=${this.save}>Save content</button>
+			${this.dirty?
+				html`<button @click=${this.save}>Save content</button>`:
+				html`<button disabled="disabled">Opened ${this.filename}</button>`
+			}
 			<button @click=${this.close}>Discard</button>
 			</form>`;
 	}

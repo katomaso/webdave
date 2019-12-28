@@ -29,11 +29,11 @@ class Navigator extends LitElement {
 
 		this.username = matchHashOr(/username=(\w+)/, "");
 		this.password = matchHashOr(/password=(\w+)/, "");
-		this.url = matchHashOr(/url=(\w+)/, "https://");
+		this.url = matchHashOr(/url=(\w+)/, document == undefined?"https://":document.location);
 		this.connected = false;
 		this.path = "";
 
-		document.addEventListener("file:save", this.save.bind(this));
+		document.addEventListener("file:save", this.saveHandler.bind(this));
 	}
 
 	static get properties() {
@@ -66,8 +66,12 @@ class Navigator extends LitElement {
 		document.dispatchEvent(e);
 	}
 
-	async save(event) {
+	saveHandler(event) {
 		let {filename, content} = event.detail;
+		return this.save(filename, content);
+	}
+
+	save(filename, content) {
 		return this.client.putFileContents(filename, content);
 	}
 
@@ -78,12 +82,12 @@ class Navigator extends LitElement {
 			let acc="";
 			if(item.filename == "/") {item.filename = ""; }
 			this.crumbs = item.filename.split("/").map(part => {return {filename: acc + "/" + part, basename: part, type: "directory"};});
-			this.client.getDirectoryContents(item.filename).then(
+			return this.client.getDirectoryContents(item.filename).then(
 				// change a property to trigger rendering
 				content => {this.content = content; this.path = item.filename;},
 				error => console.log(error))
 		} else if(item.type == "file") {
-			this.client.getFileContents(item.filename, {"format": "text"}).then(
+			return this.client.getFileContents(item.filename, {"format": "text"}).then(
 				content => navigator.open(item.filename, content),
 				error => console.log("Could not open " + item.filename + " because of " + error));
 		}
@@ -94,22 +98,27 @@ class Navigator extends LitElement {
 			super.attributeChangedCallback(name, oldval, newval);
 	}
 
-	async newContentHandler(event) {
+	newContentHandler(event) {
 		stop(event);
-		return this.newContent(event.target["name"].value)/*.then(
-			() => this.navigate({filename: this.path, type: "directory"}),
-			error => console.log("Filed to create new content!", error))*/;
+		const filename = event.target["name"].value;
+		event.target["name"].value = ""; // zero out old name
+		return this.newContent(filename);
 	}
 
-	async newContent(name) {
+	newContent(name) {
+		const navigator = this;
 		const filePath = this.path + "/" + name;
-		console.log("Creating " + filePath);
-		if(name.indexOf(".") > 0) {
-			// create file if the name contains "."
-			return this.save({detail: {filename: filePath, content: ""}});
-		} else {
-			return this.client.createDirectory(filePath);
-		}
+		const isDir = !(name.indexOf(".") > 0);
+
+		return isDir?
+			this.client.createDirectory(filePath).then(
+				() => navigator.navigate({filename: filePath, "type": "directory"})
+			):
+			this.save(filePath, "").then(
+				() => navigator.navigate({filename: this.path, "type": "directory"})
+				).then(
+				() => navigator.open(filePath, "")
+			);
 	}
 
 	render() {
@@ -118,19 +127,35 @@ class Navigator extends LitElement {
 			a {display: inline-block; padding: 0.2em;}
 			</style>
 			${this.connected?
-				html`${this.crumbs.map(item => html`<a href="" @click="${(e) => this.navigate(item, e)}">${item.basename}/</a>`)}`:
+				html`
+					${this.crumbs.map(item => html`<a href="" @click="${(e) => this.navigate(item, e)}">${item.basename}/</a>`)}
+					<ul>
+						${(this.content.length == 0)?
+							html`<li>&lt;empty&gt;</li>`:
+							html`${this.content.map(item => html`
+								<li>
+									<a href="" @click="${(e) => this.navigate(item, e)}">${item.basename}</a>
+								</li>`)}`
+						}
+						${this.connected?
+							html`<li>
+									<form @submit=${this.newContentHandler}>
+										<input type="text" name="name" placeholder="new item"/>
+										<input type="submit" value="create" />
+									</form>
+								</li>`:
+							html``
+						}
+					</ul>
+				`:
 				html`
 				<form @submit="${this.connect}">
-				<input type="text" name="username" placeholder="username" value="${this.username}" />
-				<input type="password" name="password" placeholder="password" value="${this.password}" />
-				<input type="text" name="url" placeholder="WebDAV URL (including https://)" value="${this.url}" />
-				<input type="submit" value="Connect" />
+					<input type="text" name="username" placeholder="username" value="${this.username}" />
+					<input type="password" name="password" placeholder="password" value="${this.password}" />
+					<input type="text" name="url" placeholder="WebDAV URL (including https://)" value="${this.url}" />
+					<input type="submit" value="Connect" />
 				</form>`}
-			<ul>
-				${this.content.map(item => html`<li><a href="" @click="${(e) => this.navigate(item, e)}">${item.basename}</a></li>`)}
-				${this.connected?html`<li><form @submit=${this.newContentHandler}><input type="text" name="name"></form></li>`:html``}
-			</ul>
-		`;
+			`;
 	}
 }
 
