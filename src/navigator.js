@@ -12,6 +12,16 @@ function matchHashOr(expression, defaultValue) {
 	return defaultValue;
 }
 
+function loadValue(key, defaultValue) {
+	let value = window.localStorage.getItem(key);
+	if (value == null) return defaultValue;
+	return value;
+}
+
+function storeValue(key, value) {
+	 window.localStorage.setItem(key, value);
+}
+
 function stop(event) {
 	if(event !== undefined) {
 		event.preventDefault();
@@ -28,8 +38,14 @@ class Navigator extends LitElement {
 		this.crumbs = []; // breadcrumbs-like navigation derived from path
 
 		this.username = matchHashOr(/username=(\w+)/, "");
-		this.password = matchHashOr(/password=(\w+)/, "");
-		this.url = matchHashOr(/url=(\w+)/, document == undefined?"https://":document.location);
+		if(!this.username) {
+			this.username = loadValue("navigator.username", "")
+		}
+		this.url = matchHashOr(/url=(\w+)/, "");
+		if(!this.url) this.url = loadValue("navigator.url", "");
+		if(!this.url) this.url = window.location;
+
+		this.password = ""
 		this.connected = false;
 		this.path = "";
 
@@ -54,9 +70,13 @@ class Navigator extends LitElement {
 		this.url = (event.target['url']).value;
 		this.client = webdavClient(this.url, {"username": this.username, "password": this.password});
 		this.client.getDirectoryContents(this.path)
-			.then(
-				content => {this.content = content; this.connected = true}, // important that connected is the last statement?
-				error => console.log(error));
+			.then(content => {
+				storeValue("navigator.username", this.username);
+				storeValue("navigator.url", this.url);
+				this.content = content;
+				this.connected = true; // important that connected is the last statement?
+			})
+			.catch(error => console.log(error));
 	}
 
 	open(filename, content) {
