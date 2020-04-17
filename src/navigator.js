@@ -101,7 +101,7 @@ class Navigator extends LitElement {
 		if(item.type == "directory") {
 			let acc="";
 			if(item.filename == "/") {item.filename = ""; }
-			this.crumbs = item.filename.split("/").map(part => {return {filename: acc + "/" + part, basename: part, type: "directory"};});
+			this.crumbs = item.filename.split("/").map(part => {return {filename: acc + "/" + part, basename: (part?part:window.location.hostname), type: "directory"};});
 			return this.client.getDirectoryContents(item.filename).then(
 				// change a property to trigger rendering
 				content => {this.content = content; this.path = item.filename;},
@@ -141,14 +141,30 @@ class Navigator extends LitElement {
 			);
 	}
 
+	static get styles() {
+		return css`
+			a {display: inline-block; padding: 0.2em;}
+			h1 + form input {
+				margin-left: 1em;
+				display: block;
+				border-radius: 5px;
+				padding: 0.5em 1em;
+				margin-bottom: 1em;
+				font-size: 10pt;
+			}
+			h1 + form input[type="submit"] {
+				background-color: green;
+				color: white;
+			}
+			li:last-of-type {list-style: none; margin-left: -1em}
+		`;
+	}
+
 	render() {
 		return html`
-			<style>
-			a {display: inline-block; padding: 0.2em;}
-			</style>
 			${this.connected?
 				html`
-					${this.crumbs.map(item => html`<a href="" @click="${(e) => this.navigate(item, e)}">${item.basename}/</a>`)}
+					${this.crumbs.map(item => html`<a href="" @click="${(e) => this.navigate(item, e)}">${item.basename}</a> /`)}
 					<ul>
 						${(this.content.length == 0)?
 							html`<li>&lt;empty&gt;</li>`:
@@ -169,6 +185,7 @@ class Navigator extends LitElement {
 					</ul>
 				`:
 				html`
+				<h1>WebDAV browser</h1>
 				<form @submit="${this.connect}">
 					<input type="text" name="username" placeholder="username" value="${this.username}" />
 					<input type="password" name="password" placeholder="password" value="${this.password}" />
