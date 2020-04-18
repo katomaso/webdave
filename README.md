@@ -1,34 +1,37 @@
-# Browser suite for code editing
+# Edit your files via webdav
 
-The project has two specificities why you might love it
+This is the most elegant project I have created. It serves for editing your files online via WebDAV.
+WebDAV is a standard protocol implemented by all mainstream HTTP servers that allows you to
+write files to the remote disk. The only standard protocol I can think of. What is the benefit?
+You can create your own blog - no php, no database, just an http server.
 
-## 1/ Only standard storage backend is require (e.g. WebDAV)
+To prove my words, this project runs on [its Github page](https://katomaso.github.io/webdave).
+You can access your webdav point (provided you have allowed CORS on your server) and edit your
+files directly there. Then use some pelican/hugo/jekyll to turn those files into HTML.
 
-You don't need to run yet-anothet service on your server. If you have standard
-WebDAV server running, you are ready to go.
+# What is so elegant on your implementation?
 
-## 2/ It comes in form of web components
+It comes in form of pure web components. Go to the [github page](https://katomaso.github.io/webdave)
+and view source (ctrl+u). Beautiful isn't it? You can see two components - a navigator and editor.
 
-You can simply put them into your project just by
+Don't you like my editor? I am not surprised. You can exchange it for your own. Just copy the index.html
+to your server, keep the navigator component and replace the editor for you own. Will they cooperate? Yes!
+That's the elegance I am talking about.
 
-```
-<script src="https:///path/to/deisred/component.js" type="module"/>
-...
-<your-component [some-custom-settings]>
-```
+## Communication via customEvents on `document` is your new API
 
-## 3/ Communicates via customEvents on `document`
+Each component listen to `customEvent`s on the top-level `document`. CustomEvents are
+simply identified by a string and contain data in customEvent.detail dictionary. This 
+project uses notation `object:action` for example `file:open`. Any component that can 
+open a file (given its extension) should catch that event and react on it. Such as the
+editor does. Once you hit "Save" button in the editor, it fires `file:save` event and 
+puts file's content and full path into the `detail` of the CustomEvent. The navigator
+catches it this time and sends the content of the file via WebDAV back to the server.  
 
-Therefor you can simply exchange any component for your own and if you listen/fire
-the same customEvents then everything will still work.
+# API
 
+API is realized by dispatching CustomEvent on `document`. Following summary shows the
+event's type (in bold) and required attributes of `detail` object of the event.
 
-## Editor
-
-Editor enables you to edit files that are provided by another element in the page.
-
-Communication to/from the editor is done via customEvents.
- * __"file:open"__ instruct editor toopen a file. Detail dictionary must contain
-  "filename", "content"
- * __"file:save"__ is fired by the editor any time someone hits save button. The detail
-   dictionary contains "filename" and "content".
+ * __"file:open"__, `detail` must contain `"filename"` (full path) and `"content"`.
+ * __"file:save"__, `detail` must contain `"filename"` (full path) and `"content"`.
