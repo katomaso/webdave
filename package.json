@@ -19,6 +19,7 @@
   },
   "scripts": {
     "build": "./node_modules/.bin/webpack --config webpack.config.js",
-    "serve": "node serve.js"
+    "serve": "node serve.js",
+    "publish": "rm -rf docs; cp -r dist docs"
   }
 }

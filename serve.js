@@ -2,10 +2,10 @@ const express = require('express');
 const webdav = require('webdav-server').v2;
 const app = express();
 
-app.use(express.static('docs'));
+app.use(express.static('dist'));
 
 app.get('/', function (req, res) {
-   res.sendFile(__dirname + "/docs/" + "index.html" );
+   res.sendFile(__dirname + "/dist/" + "index.html" );
 })
 
 // Mount the WebDAVServer instance
