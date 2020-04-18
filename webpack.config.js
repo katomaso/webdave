@@ -11,6 +11,6 @@ module.exports = {
 		new CopyPlugin([{from: "static"}])
 	],
 	output: {
-		path: path.resolve(__dirname, "dist")
+		path: path.resolve(__dirname, "docs")  // because of Github pages
 	}
 }
