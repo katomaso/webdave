@@ -58,8 +58,7 @@ class Navigator extends LitElement {
 			password: {type: String},
 			url: {type: String},
 			path: {type: String},
-			connected: {type: Boolean, attribute: false},
-			open: {type: Function, reflect: false}
+			connected: {type: Boolean, attribute: false}
 		}
 	}
 
@@ -69,14 +68,19 @@ class Navigator extends LitElement {
 		this.password = (event.target['password']).value;
 		this.url = (event.target['url']).value;
 		this.client = webdavClient(this.url, {"username": this.username, "password": this.password});
-		this.client.getDirectoryContents(this.path)
-			.then(content => {
+		this.client.stat("/")
+			.then(stat => {
 				storeValue("navigator.username", this.username);
 				storeValue("navigator.url", this.url);
-				this.content = content;
-				this.connected = true; // important that connected is the last statement?
+				return this.navigate({filename: "/", basename: "", type: "directory"});
 			})
-			.catch(error => console.log(error));
+			.then(() => {
+				this.connected = true;
+			})
+			.catch(error => {
+				console.log(error);
+				this.connected = false;
+			});
 	}
 
 	open(filename, content) {
@@ -99,23 +103,17 @@ class Navigator extends LitElement {
 		const navigator = this;
 		stop(event);
 		if(item.type == "directory") {
-			let acc="";
-			if(item.filename == "/") {item.filename = ""; }
-			this.crumbs = item.filename.split("/").map(part => {return {filename: acc + "/" + part, basename: (part?part:window.location.hostname), type: "directory"};});
+			const parts = item.filename.split("/");
+			this.crumbs = [{filename: "/", basename: window.location.hostname, type: "directory"}];
+			for(let i = 1; i < parts.length && parts[i].filename != ""; i++) {
+				this.crumbs.push({filename: this.crumbs[i-1].filename + "/" + parts[i], basename: parts[i], type: "directory"});
+			}
 			return this.client.getDirectoryContents(item.filename).then(
-				// change a property to trigger rendering
-				content => {this.content = content; this.path = item.filename;},
-				error => console.log(error))
+				content => {this.content = content; this.path = item.filename;})
 		} else if(item.type == "file") {
 			return this.client.getFileContents(item.filename, {"format": "text"}).then(
-				content => navigator.open(item.filename, content),
-				error => console.log("Could not open " + item.filename + " because of " + error));
+				content => navigator.open(item.filename, content));
 		}
-	}
-
-	attributeChangedCallback(name, oldval, newval) {
-		console.log(name + ' change: ', newval);
-			super.attributeChangedCallback(name, oldval, newval);
 	}
 
 	newContentHandler(event) {
@@ -164,7 +162,7 @@ class Navigator extends LitElement {
 		return html`
 			${this.connected?
 				html`
-					${this.crumbs.map(item => html`<a href="" @click="${(e) => this.navigate(item, e)}">${item.basename}</a> /`)}
+					${this.crumbs.map(item => html`/ <a href="" @click="${(e) => this.navigate(item, e)}">${item.basename}</a>`)}
 					<ul>
 						${(this.content.length == 0)?
 							html`<li>&lt;empty&gt;</li>`:
