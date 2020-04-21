@@ -43,13 +43,14 @@ class Editor extends LitElement {
 				"lineNumbers": true,
 				"matchBrackets": true});
 			this.editor.setSize(null, "95vh");
-			this.editor.on("change", () => self.dirty=true);
+			this.editor.on("change", () => this.dirty=true);
 		}
 		if(filename.endsWith(".js")) this.editor.setOption("mode", "javascript");
 		else if(filename.endsWith(".html")) this.editor.setOption("mode", "htmlmixed");
 		else this.editor.setOption("mode", "text");
 		this.editor.getDoc().setValue(content);
 		this.editor.refresh();
+		this.dirty = false;
 	}
 
 	save(event) {
