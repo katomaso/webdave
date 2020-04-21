@@ -30,6 +30,9 @@ class Editor extends LitElement {
 	open(event) {
 		const self = this;
 		let {filename, content} = event.detail;
+		if(this.dirty && confirm("You have unsaved changes. Save now?")) {
+			this.save();
+		}
 		this.filename = filename;
 		if(this.editor === null) {
 			this.editor = CodeMirror.fromTextArea(this.textarea, {
@@ -41,8 +44,6 @@ class Editor extends LitElement {
 				"matchBrackets": true});
 			this.editor.setSize(null, "95vh");
 			this.editor.on("change", () => self.dirty=true);
-		} else {
-			if(this.dirty && confirm("You have unsaved changes. Save now?")) this.save();
 		}
 		if(filename.endsWith(".js")) this.editor.setOption("mode", "javascript");
 		else if(filename.endsWith(".html")) this.editor.setOption("mode", "htmlmixed");
@@ -84,9 +85,9 @@ class Editor extends LitElement {
 			<textarea></textarea>
 			${this.dirty?
 				html`<button @click=${this.save}>Save content</button>`:
-				html`<button disabled="disabled">Opened ${this.filename}</button>`
+				html`<button disabled="disabled">Saved ${this.filename}</button>`
 			}
-			<button @click=${this.close}>Discard</button>
+			<button @click=${this.close}>Close</button>
 			</form>`;
 	}
 
