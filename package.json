@@ -7,7 +7,7 @@
   "dependencies": {
     "codemirror": "^5.50.0",
     "lit-element": "^2.2.1",
-    "webdav": "^2.5.0"
+    "webdav": "^3.3.0"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^5.0.5",
