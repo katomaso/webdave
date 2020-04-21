@@ -29,6 +29,15 @@ function stop(event) {
 	}
 }
 
+function pathJoin(/*paths...*/) {
+	let path = "";
+	for (var i = 0; i < arguments.length; i++) {
+		if(path.endsWith("/")) path = path + arguments[i];
+		else path = path + "/" + arguments[i];
+	}
+	return path;
+}
+
 class Navigator extends LitElement {
 
 	constructor() {
@@ -100,7 +109,6 @@ class Navigator extends LitElement {
 	}
 
 	navigate(item, event) {
-		const navigator = this;
 		stop(event);
 		if(item.type == "directory") {
 			const parts = item.filename.split("/");
@@ -109,7 +117,11 @@ class Navigator extends LitElement {
 				this.crumbs.push({filename: this.crumbs[i-1].filename + "/" + parts[i], basename: parts[i], type: "directory"});
 			}
 			return this.client.getDirectoryContents(item.filename).then(
-				content => {this.content = content; this.path = item.filename;})
+				content => {
+					this.content = content;
+					this.path = item.filename;
+				});
+
 		} else if(item.type == "file") {
 			return this.client.getFileContents(item.filename, {"format": "text"}).then(
 				content => navigator.open(item.filename, content));
@@ -124,18 +136,17 @@ class Navigator extends LitElement {
 	}
 
 	newContent(name) {
-		const navigator = this;
-		const filePath = this.path + "/" + name;
-		const isDir = !(name.indexOf(".") > 0);
+		const filePath = pathJoin(this.path, name);
+		const isDir = (name.indexOf(".") < 0);
 
 		return isDir?
 			this.client.createDirectory(filePath).then(
-				() => navigator.navigate({filename: filePath, "type": "directory"})
+				() => this.navigate({filename: filePath, "type": "directory"})
 			):
 			this.save(filePath, "").then(
-				() => navigator.navigate({filename: this.path, "type": "directory"})
+				() => this.navigate({filename: this.path, "type": "directory"})
 				).then(
-				() => navigator.open(filePath, "")
+				() => this.navigate({filename: filePath, "type": "file"})
 			);
 	}
 
