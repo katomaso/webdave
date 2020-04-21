@@ -50,6 +50,7 @@ class Editor extends LitElement {
 		else this.editor.setOption("mode", "text");
 		this.editor.getDoc().setValue(content);
 		this.editor.refresh();
+		this.editor.focus();
 		this.dirty = false;
 	}
 
@@ -85,7 +86,7 @@ class Editor extends LitElement {
 			<form>
 			<textarea></textarea>
 			${this.dirty?
-				html`<button @click=${this.save}>Save content</button>`:
+				html`<button @click=${this.save}>Save ${this.filename}</button>`:
 				html`<button disabled="disabled">Saved ${this.filename}</button>`
 			}
 			<button @click=${this.close}>Close</button>

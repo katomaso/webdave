@@ -136,8 +136,10 @@ class Navigator extends LitElement {
 
 	newContentHandler(event) {
 		stop(event);
-		const filename = event.target["name"].value;
-		event.target["name"].value = ""; // zero out old name
+		const input = event.target["name"];
+		const filename = input.value;
+		input.blur();
+		input.value = ""; // zero out old name
 		return this.newContent(filename);
 	}
 
