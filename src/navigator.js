@@ -123,8 +123,14 @@ class Navigator extends LitElement {
 				});
 
 		} else if(item.type == "file") {
-			return this.client.getFileContents(item.filename, {"format": "text"}).then(
-				content => navigator.open(item.filename, content));
+			return this.client.stat(item.filename).then(
+				stats => {
+					if(!stats.mime.startsWith("text")) throw new Error("Can open only text files");
+					if(stats.size > 512000) throw new Error("Cannot open too big files (512kB is the limit)");
+					return this.client.getFileContents(item.filename, {"format": "text"})
+				}).then(
+				content => this.open(item.filename, content)
+				);
 		}
 	}
 
