@@ -168,6 +168,24 @@ class Navigator extends LitElement {
 		return this.newContent(filename);
 	}
 
+	uploadContentHandler(event) {
+		stop(event);
+		if(event.target.files.length == 0) return;
+		let nav = this;
+		let uploads = [];
+		let input = event.target;
+		input.disabled = true;
+		for (let file of input.files) {
+			uploads.push(this.save(pathJoin(this.path, file.name), file));
+		}
+		return Promise.all(uploads)
+			.then(() => this.refresh())
+			.finally(() => {
+				input.value = "";
+				input.disabled = false;
+			});
+	}
+
 	newContent(name) {
 		const filePath = pathJoin(this.path, name);
 		const isDir = (name.indexOf(".") < 0);
@@ -215,7 +233,13 @@ class Navigator extends LitElement {
 										<input type="text" name="name" placeholder="new item"/>
 										<input type="submit" value="create" />
 									</form>
-								</li>`:
+								</li>
+								<li>
+									<form @submit=${stop}>
+										<input type="file" name="file" multiple @change=${this.uploadContentHandler}/>
+									</form>
+								</li>
+								`:
 							html``
 						}
 					</ul>
