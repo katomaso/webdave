@@ -155,6 +155,10 @@ class Navigator extends LitElement {
 			});
 	}
 
+	refresh() {
+		return this.navigate(this.path);
+	}
+
 	newContentHandler(event) {
 		stop(event);
 		const input = event.target["name"];
@@ -171,7 +175,7 @@ class Navigator extends LitElement {
 		return (isDir?
 			this.client.createDirectory(filePath):
 			this.save(filePath, "").then(() => this.open(filePath, ""))
-		).then(() => this.navigate(this.path)); // a.k.a. refresh
+		).then(() => this.refresh());
 	}
 
 	static get styles() {
@@ -189,7 +193,6 @@ class Navigator extends LitElement {
 				background-color: green;
 				color: white;
 			}
-			li:last-of-type {list-style: none; margin-left: -1em}
 		`;
 	}
 
