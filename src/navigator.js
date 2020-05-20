@@ -129,7 +129,7 @@ class Navigator extends LitElement {
 		return this.client.stat(path).then(
 			stats => {
 				if(stats.type == "file") {
-					if(!stats.mime.startsWith("text")) throw new Error("Can open only text files");
+					if(stats.mime && !stats.mime.startsWith("text")) throw new Error("Can open only text files");
 					if(stats.size > 512000) throw new Error("Cannot open too big files (512kB is the limit)");
 					return this.client.getFileContents(path, {"format": "text"}).then(
 						content => this.open(path, content)
