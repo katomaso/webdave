@@ -156,7 +156,7 @@ class Navigator extends LitElement {
 	}
 
 	refresh() {
-		return this.navigate(this.path);
+		return this.navigate(this.path).then(() => this.selectNone());
 	}
 
 	newContentHandler(event) {
@@ -188,7 +188,7 @@ class Navigator extends LitElement {
 
 	newContent(name) {
 		const filePath = pathJoin(this.path, name);
-		const isDir = (name.indexOf(".") < 0);
+		const isDir = (name.indexOf(".") < 0 || name.endsWith("/"));
 
 		return (isDir?
 			this.client.createDirectory(filePath):
@@ -196,9 +196,59 @@ class Navigator extends LitElement {
 		).then(() => this.refresh());
 	}
 
+	// Return list of selected filenames (absolute paths) 
+	selected() {
+		return Array.from(this.shadowRoot.querySelectorAll("input[type='checkbox']"))
+			.filter(i => i.name != "all" && i.checked)
+			.map(i => i.name);
+	}
+
+	toggleSelection(event) {
+		let checked = event.target.checked;
+		return this.shadowRoot
+			.querySelectorAll("input[type='checkbox']")
+			.forEach(i => i.checked==checked?checked:i.checked=checked);
+			// if the check status conforms to the main checked status than keep
+			// otherwise change	
+	}
+	selectNone() {return this.toggleSelection({"target": {"checked": false}});}
+	selectAll() {return this.toggleSelection({"target": {"checked": true}});}
+
+	// Delete all files that have checkbox checked next to them
+	deleteSelected(event) {
+		stop(event);
+		if(event) {
+			// event exists thus it was made by the user clicking a button - let's re-confirm
+			if(!confirm("Really delete files?")) {
+				return;
+			}
+		}
+		return Promise.all(this.selected().map(
+				filename => this.client.deleteFile(pathJoin(this.path, filename)))
+			)
+			.then(deleted => this.refresh());
+	}
+
+	// Delete all files that have checkbox checked next to them
+	moveSelected(event) {
+		stop(event);
+		let whereTo = window.prompt("Where to move", this.path);
+		return this.client.stat(whereTo)
+			.then(stat => {
+				if(stat.type != "directory") throw new Error(`$whereTo is not an existing directory`);
+				return Promise.all(this.selected().map(
+					(filename) => this.client.moveFile(pathJoin(this.path, filename), pathJoin(whereTo, filename)))
+				)
+			})
+			.then(deleted => this.refresh())
+			.catch(err => window.alert(err));
+	}
+
 	static get styles() {
 		return css`
 			a {display: inline-block; padding: 0.2em;}
+			ul {padding-left: 0}
+			li {list-style: none}
 			h1 + form input {
 				margin-left: 1em;
 				display: block;
@@ -222,9 +272,16 @@ class Navigator extends LitElement {
 					<ul>
 						${(this.content.length == 0)?
 							html`<li>&lt;empty&gt;</li>`:
-							html`${this.content.map(item => html`
+							html`<li>
+									<input type="checkbox" name="all" @change=${this.toggleSelection}>
+									selection:&nbsp;
+									<button @click=${this.moveSelected}><em>move</em></button>
+									&nbsp;
+									<button @click=${this.deleteSelected}><em>delete</em></button>
+								</li>
+								${this.content.map(item => html`
 								<li>
-									<a href="" @click="${(e) => this.navigate(item.filename, e)}">${item.basename}</a>
+									<input type="checkbox" name="${item.basename}" value="${item.filename}"/>&nbsp;<a href="" @click="${(e) => this.navigate(item.filename, e)}">${item.basename}</a>
 								</li>`)}`
 						}
 						${this.connected?
