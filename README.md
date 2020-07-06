@@ -9,7 +9,7 @@ To prove my words, this project runs on [its Github page](https://katomaso.githu
 You can access your webdav point (provided you have allowed CORS on your server) and edit your
 files directly there. Then use some pelican/hugo/jekyll to turn those files into HTML.
 
-# What is so elegant on your implementation, Tomas?
+# What is so elegant on your implementation?
 
 It comes in form of pure web components. Go to the [github page](https://katomaso.github.io/webdave)
 and view source (ctrl+u). Beautiful isn't it? You can see two components - a navigator and editor.
