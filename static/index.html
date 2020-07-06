@@ -6,11 +6,14 @@
         body {display: flex}
         webdav-navigator {flex-grow: 1}
         webdav-editor {flex-grow: 4}
+        vtcn-logger{position: absolute; right:0;}
     </style>
+    <script src="vtcn-logger.js"></script>
     <script src="webdav-navigator.js"></script>
     <script src="webdav-editor.js"></script>
   </head>
   <body>
+    <vtcn-logger timeout="5000"></vtcn-logger>
     <webdav-navigator></webdav-navigator>
     <webdav-editor></webdav-editor>
   </body>
