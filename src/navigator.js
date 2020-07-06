@@ -103,7 +103,7 @@ class Navigator extends LitElement {
 				this.connected = true;
 			})
 			.catch(error => {
-				console.log(error);
+				this.error("Connection failed", error);
 				this.connected = false;
 			});
 	}
@@ -180,6 +180,7 @@ class Navigator extends LitElement {
 		}
 		return Promise.all(uploads)
 			.then(() => this.refresh())
+			.catch(err => this.error("Failed to upload files", err))
 			.finally(() => {
 				input.value = "";
 				input.disabled = false;
@@ -226,7 +227,8 @@ class Navigator extends LitElement {
 		return Promise.all(this.selected().map(
 				filename => this.client.deleteFile(pathJoin(this.path, filename)))
 			)
-			.then(deleted => this.refresh());
+			.then(deleted => this.refresh())
+			.catch(err => this.error("Could not delete file " + pathJoin(this.path, filename), err));
 	}
 
 	// Delete all files that have checkbox checked next to them
@@ -241,7 +243,9 @@ class Navigator extends LitElement {
 				)
 			})
 			.then(deleted => this.refresh())
-			.catch(err => window.alert(err));
+			.catch(err => this.error(
+				"Could not move file from " + pathJoin(this.path, filename) + " to " + pathJoin(whereTo, filename), err
+			));
 	}
 
 	static get styles() {
@@ -310,6 +314,15 @@ class Navigator extends LitElement {
 					<input type="submit" value="Connect" />
 				</form>`}
 			`;
+	}
+
+	error(message, error) {
+		console.log(message);
+		console.log(error.toString());
+		let detail = {
+			"message": `${message}: ${error.toString()}`
+		}
+		return document.dispatchEvent(new CustomEvent("log:error", {"detail" : detail}));
 	}
 }
 

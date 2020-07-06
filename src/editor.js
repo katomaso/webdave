@@ -71,7 +71,7 @@ class Editor extends LitElement {
 		if(this.dirty && confirm("You have unsaved changes. Save now?")) this.save();
 		this.editor.toTextArea();
 		this.textarea.value = "";
-		this.styles = [];
+		this.editor = null;
 	}
 
 	render() {
