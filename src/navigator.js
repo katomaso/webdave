@@ -56,6 +56,8 @@ function pathJoin(/*paths...*/) {
 
 class Navigator extends LitElement {
 
+	static get sortOptions() {return ["name", "time"];}
+
 	constructor() {
 		super();
 		this.client = null;
@@ -73,6 +75,7 @@ class Navigator extends LitElement {
 		this.password = ""
 		this.connected = false;
 		this.path = "";
+		this.sort = Navigator.sortOptions[0]; // first is the default
 
 		document.addEventListener("file:save", this.saveHandler.bind(this));
 	}
@@ -83,6 +86,7 @@ class Navigator extends LitElement {
 			password: {type: String},
 			url: {type: String},
 			path: {type: String},
+			sort: {type: String},
 			connected: {type: Boolean, attribute: false}
 		}
 	}
@@ -155,8 +159,21 @@ class Navigator extends LitElement {
 			});
 	}
 
+	sorted(content) {
+		let sortFunc;
+		if(this.sort == "name") {
+			sortFunc = (a, b) => a.basename < b.basename ? -1 : +1;
+		}
+		if(this.sort == "time") {
+			sortFunc = (a, b) => new Date(a.lastmod) < new Date(b.lastmod) ? -1 : +1;
+		}
+		return this.content.filter(d => d.type == "directory").sort(sortFunc).concat(
+				this.content.filter(d => d.type == "file").sort(sortFunc));
+	}
+
 	refresh() {
-		return this.navigate(this.path).then(() => this.selectNone());
+		this.selectNone();
+		return this.navigate(this.path);
 	}
 
 	newContentHandler(event) {
@@ -274,6 +291,15 @@ class Navigator extends LitElement {
 				html`
 					${this.crumbs.map(item => html`/ <a href="" @click="${this.navigate.bind(this, item.filename)}">${item.basename}</a>`)}
 					<ul>
+						<li>
+							<label>Sort by</label>
+							<select name="sort" @change=${(e) => this.sort = e.target.value}>
+							${Navigator.sortOptions.map((option) => (this.sort == option) ? 
+								html`<option value="${option}" selected>${option}</option>` :
+								html`<option value="${option}">${option}</option>`
+							)}
+							</select>
+						</li>
 						${(this.content.length == 0)?
 							html`<li>&lt;empty&gt;</li>`:
 							html`<li>
@@ -283,26 +309,22 @@ class Navigator extends LitElement {
 									&nbsp;
 									<button @click=${this.deleteSelected}><em>delete</em></button>
 								</li>
-								${this.content.map(item => html`
+								${this.sorted(this.content).map(item => html`
 								<li>
 									<input type="checkbox" name="${item.basename}" value="${item.filename}"/>&nbsp;<a href="" @click="${(e) => this.navigate(item.filename, e)}">${item.basename}</a>
 								</li>`)}`
 						}
-						${this.connected?
-							html`<li>
-									<form @submit=${this.newContentHandler}>
-										<input type="text" name="name" placeholder="new item"/>
-										<input type="submit" value="create" />
-									</form>
-								</li>
-								<li>
-									<form @submit=${stop}>
-										<input type="file" name="file" multiple @change=${this.uploadContentHandler}/>
-									</form>
-								</li>
-								`:
-							html``
-						}
+						<li>
+							<form @submit=${this.newContentHandler}>
+								<input type="text" name="name" placeholder="new item"/>
+								<input type="submit" value="create" />
+							</form>
+						</li>
+						<li>
+							<form @submit=${stop}>
+								<input type="file" name="file" multiple @change=${this.uploadContentHandler}/>
+							</form>
+						</li>
 					</ul>
 				`:
 				html`
