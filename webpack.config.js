@@ -6,7 +6,8 @@ module.exports = {
 	entry: {
 		"webdav-navigator": "./src/navigator.js",
 		"webdav-editor": "./src/editor.js",
-		"vtcn-logger": "./src/logger.js"
+		"vtcn-logger": "./src/logger.js",
+		"cloudblog-admin": "./src/cloudblog-admin.js"
 	},
 	plugins: [
 		new CopyPlugin([{from: "static"}])
