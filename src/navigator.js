@@ -1,5 +1,3 @@
-"use strict";
-
 import { createClient as webdavClient } from "webdav";
 import { LitElement, html, css } from "lit-element";
 
@@ -74,7 +72,7 @@ class Navigator extends LitElement {
 
 		this.password = ""
 		this.connected = false;
-		this.path = "";
+		this.path = matchHashOr(/path=([\w/\._\-]+)/, "/");
 		this.sort = Navigator.sortOptions[0]; // first is the default
 
 		document.addEventListener("file:save", this.saveHandler.bind(this));
@@ -91,24 +89,50 @@ class Navigator extends LitElement {
 		}
 	}
 
-	connect(event) {
-		stop(event);
-		this.username = (event.target['username']).value;
-		this.password = (event.target['password']).value;
-		this.url = (event.target['url']).value;
-		this.client = webdavClient(this.url, {"username": this.username, "password": this.password});
-		this.client.stat("/")
+	connectHandler(event) {
+		if (this.connected) return;
+
+		if (event instanceof CustomEvent) {
+			return this.connect(event.username, event.password, event.url);
+		} else if (event) {
+			stop(event);
+			return this.connect(
+				(event.target['username']).value,
+				(event.target['password']).value,
+				(event.target['url']).value
+			).then(() => {
+				if(!this.connected) return;
+
+				return document.dispatchEvent(new CustomEvent("login", {"detail": {
+					'username': this.username,
+					'password': this.password,
+					'url': this.url
+				}}));
+			});
+		}
+	}
+
+	connect(username, password, url) {
+		this.username = username;
+		this.password = password;
+		this.url = url;
+		return new Promise(
+			(resolve, reject) => resolve(webdavClient(
+				this.url, 
+				{"username": this.username, "password": this.password}))
+			).then(client => {
+				this.client = client;
+				return client.stat("/");
+			})
 			.then(stat => {
+				this.connected = true;
 				storeValue("navigator.username", this.username);
 				storeValue("navigator.url", this.url);
-				return this.navigate("/");
-			})
-			.then(() => {
-				this.connected = true;
+				return this.navigate(this.path);
 			})
 			.catch(error => {
-				this.error("Connection failed", error);
 				this.connected = false;
+				this.error("Connection failed", error);
 			});
 	}
 
@@ -329,7 +353,7 @@ class Navigator extends LitElement {
 				`:
 				html`
 				<h1>WebDAV browser</h1>
-				<form @submit="${this.connect}">
+				<form @submit="${this.connectHandler}">
 					<input type="text" name="username" placeholder="username" value="${this.username}" />
 					<input type="password" name="password" placeholder="password" value="${this.password}" />
 					<input type="text" name="url" placeholder="WebDAV URL (including https://)" value="${this.url}" />
