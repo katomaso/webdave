@@ -299,7 +299,27 @@ class Navigator extends LitElement {
 		return css`
 			a {display: inline-block; padding: 0.2em;}
 			ul {padding-left: 0}
-			li {list-style: none}
+			li {list-style: none; display: flex}
+			li .list-checkbox {
+				box-sizing: border-box;
+				position: relative;
+				width: 54px;
+				min-height: 54px;
+				flex-shrink: 0;
+				margin-right: 1px;
+			}
+			li .list-rest {
+				display: flex;
+				flex: 1 1 auto;
+				overflow: hidden;
+				min-height: 54px;
+				text-decoration: none;
+				color: inherit;
+				font-size: 10pt;
+			}
+			li input[type=checkbox] {
+				width:100%; height:100%;
+			}
 			h1 + form input {
 				margin-left: 1em;
 				display: block;
@@ -333,15 +353,24 @@ class Navigator extends LitElement {
 						${(this.content.length == 0)?
 							html`<li>&lt;empty&gt;</li>`:
 							html`<li>
-									<input type="checkbox" name="all" @change=${this.toggleSelection}>
+									<div class="list-checkbox">
+										<input type="checkbox" name="all" @change=${this.toggleSelection}>
+									</div>
+									<div class="list-rest">
 									selection:&nbsp;
 									<button @click=${this.moveSelected}><em>move</em></button>
 									&nbsp;
 									<button @click=${this.deleteSelected}><em>delete</em></button>
+									</div>
 								</li>
 								${this.sorted(this.content).map(item => html`
 								<li>
-									<input type="checkbox" name="${item.basename}" value="${item.filename}"/>&nbsp;<a href="" @click="${(e) => this.navigate(item.filename, e)}">${item.basename}</a>
+									<div class="list-checkbox">
+									<input type="checkbox" name="${item.basename}" value="${item.filename}"/>
+									</div>
+									<div class="list-rest">
+									<a href="" @click="${(e) => this.navigate(item.filename, e)}">${item.basename}</a>
+									</div>
 								</li>`)}`
 						}
 						<li>
