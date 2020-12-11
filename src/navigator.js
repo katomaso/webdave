@@ -26,6 +26,12 @@ function matchHashOr(expression, defaultValue) {
 	return defaultValue;
 }
 
+function stripProtocol(url) {
+	if (url.startsWith("https://")) return url.substr(8, url.length);
+	if (url.startsWith("http://")) return url.substr(7, url.length);
+	return url;
+}
+
 function loadValue(key, defaultValue) {
 	let value = window.localStorage.getItem(key);
 	if (value == null) return defaultValue;
@@ -165,7 +171,7 @@ class Navigator extends LitElement {
 				}
 				else if(stats.type == "directory") {
 					const parts = path.split("/");
-					this.crumbs = [{filename: "/", basename: window.location.hostname}];
+					this.crumbs = [{filename: "/", basename: stripProtocol(this.url || "")}];
 					for(let i = 1; i < parts.length && parts[i].filename != ""; i++) {
 						this.crumbs.push({filename: pathJoin(this.crumbs[i-1].filename, parts[i]), basename: parts[i]});
 					}

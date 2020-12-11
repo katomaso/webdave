@@ -79,17 +79,29 @@ class Editor extends LitElement {
 			<link rel="stylesheet" href="css/font-awesome.min.css">
 			<link rel="stylesheet" href="css/codemirror.css">
 			<style>
-				form > textarea {width: 100%; height: 95vh}
-				form > button { display: inline-block; font-size: 15pt; width: 70%; margin: 5pt}
-				form > button + button {width: 20%}
+				form {
+					height: 100%;
+					width: 100%;
+					display: flex;
+					align-items: stretch;
+					flex-direction: column;
+					justify-content: flex-start;
+				}
+				textarea {flex: 1}
+				#buttons {flex: 0 0 auto; display: flex; align-items: stretch;}
+				#buttons button{font-size: 13pt; padding: 0.3em 1em;}
+				#buttons > button {flex: 1; margin-right: 1em;}
+				#buttons > button + button {flex: 0 0 auto; margin-right: 0; margin-left: 1em;} 
 			</style>
 			<form>
 			<textarea></textarea>
+			<div id="buttons">
 			${this.dirty?
 				html`<button @click=${this.save}>Save ${this.filename}</button>`:
 				html`<button disabled="disabled">Saved ${this.filename}</button>`
 			}
 			<button @click=${this.close}>Close</button>
+			</div>
 			</form>`;
 	}
 
