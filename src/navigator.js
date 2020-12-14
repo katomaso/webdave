@@ -297,28 +297,32 @@ class Navigator extends LitElement {
 
 	static get styles() {
 		return css`
-			a {display: inline-block; padding: 0.2em;}
+			a {display:inline-block; padding:0.2em; color:#000}
 			ul {padding-left: 0}
 			li {list-style: none; display: flex}
 			li .list-checkbox {
 				box-sizing: border-box;
 				position: relative;
-				width: 54px;
-				min-height: 54px;
+				width: 33px;
+				min-height: 33px;
 				flex-shrink: 0;
-				margin-right: 1px;
 			}
 			li .list-rest {
 				display: flex;
 				flex: 1 1 auto;
 				overflow: hidden;
-				min-height: 54px;
+				min-height: 33px;
+				line-height: 33px;
 				text-decoration: none;
 				color: inherit;
-				font-size: 10pt;
+				font-size: 13pt;
+			}
+			li a.list-rest:hover {
+				background-color: #ccc;	
 			}
 			li input[type=checkbox] {
-				width:100%; height:100%;
+				margin: 9px 9px;
+				width:15px; height:15px;
 			}
 			h1 + form input {
 				margin-left: 1em;
@@ -368,9 +372,7 @@ class Navigator extends LitElement {
 									<div class="list-checkbox">
 									<input type="checkbox" name="${item.basename}" value="${item.filename}"/>
 									</div>
-									<div class="list-rest">
-									<a href="" @click="${(e) => this.navigate(item.filename, e)}">${item.basename}</a>
-									</div>
+									<a class="list-rest" href="" @click="${(e) => this.navigate(item.filename, e)}">${item.basename}</a>
 								</li>`)}`
 						}
 						<li>
