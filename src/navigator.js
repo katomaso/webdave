@@ -139,6 +139,7 @@ class Navigator extends LitElement {
 			.catch(error => {
 				this.connected = false;
 				this.error("Connection failed", error);
+				return this.requestUpdate(); // to refresh form values
 			});
 	}
 
