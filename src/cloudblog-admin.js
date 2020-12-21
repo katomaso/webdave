@@ -1,17 +1,6 @@
-import {LitElement, html} from 'lit-element';
+import {LitElement, html, css} from 'lit-element';
 
 class CloudBlogAdmin extends LitElement {
-
-	constructor() {
-		this.connected = false;
-		document.addEventListener("login", (e) => this.connected = true);
-	}
-
-	static get properties() {
-		return {
-			"connected": {type: Boolean}
-		}
-	}
 
 	preview() {
 		return document.dispatchEvent(new CustomEvent("file:save", {detail: {
@@ -27,16 +16,26 @@ class CloudBlogAdmin extends LitElement {
 		}}));
 	}
 
+	create() {
+		return document.dispatchEvent(new CustomEvent("file:save", {detail: {
+			"filename": "",
+			"content": ""
+		}}));
+	}
+
 	render() {
-		return html`${this.connected?
-			html`
-			<button @click=${this.preview}>Náhled</button>
-			<button @click=${this.publish}>Publikovat</button>
-			`:
-			html`
-			Nejdříve je nutné se přihlásit
-			`
-			}
+		return html`<div>
+			<button class="preview" @click=${this.preview}>Náhled</button>
+			<button class="publish" @click=${this.publish}>Publikovat</button>
+		</div>`;
+	}
+
+	static get styles() {
+		return css`
+		div {padding: .3rem 2rem}
+		button {padding: .1rem .6rem; margin-right: 1rem}
+		.publish {background-color: #ca2; color: #fff}
+		.preview {background-color: #2ac; color: #fff}
 		`;
 	}
 }
