@@ -72,6 +72,8 @@ class Editor extends LitElement {
 		this.editor.toTextArea();
 		this.textarea.value = "";
 		this.editor = null;
+		this.filename = "";
+		this.dirty = false;
 	}
 
 	render() {
