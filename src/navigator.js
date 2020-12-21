@@ -299,21 +299,23 @@ class Navigator extends LitElement {
 	static get styles() {
 		return css`
 			a {display:inline-block; padding:0.2em; color:#000}
-			ul {padding-left: 0}
-			li {list-style: none; display: flex}
+			label {font-size: 14pt; margin: 0 0.3rem;}
+			select {padding: .2rem .5rem}
+			ul {padding-left: .5rem}
+			li {list-style: none; display: flex; margin-bottom: .4rem}
 			li .list-checkbox {
 				box-sizing: border-box;
 				position: relative;
-				width: 33px;
-				min-height: 33px;
+				width: 30px;
+				min-height: 30px;
 				flex-shrink: 0;
 			}
 			li .list-rest {
 				display: flex;
 				flex: 1 1 auto;
 				overflow: hidden;
-				min-height: 33px;
-				line-height: 33px;
+				min-height: 30px;
+				line-height: 30px;
 				text-decoration: none;
 				color: inherit;
 				font-size: 13pt;
@@ -322,8 +324,8 @@ class Navigator extends LitElement {
 				background-color: #ccc;	
 			}
 			li input[type=checkbox] {
-				margin: 9px 9px;
-				width:15px; height:15px;
+				margin: 7px 7px;
+				width:16px; height:16px;
 			}
 			h1 + form input {
 				margin-left: 1em;
@@ -362,7 +364,7 @@ class Navigator extends LitElement {
 										<input type="checkbox" name="all" @change=${this.toggleSelection}>
 									</div>
 									<div class="list-rest">
-									selection:&nbsp;
+									<label>Selection:</label>
 									<button @click=${this.moveSelected}><em>move</em></button>
 									&nbsp;
 									<button @click=${this.deleteSelected}><em>delete</em></button>
