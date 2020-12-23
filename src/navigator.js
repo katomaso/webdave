@@ -375,7 +375,7 @@ class Navigator extends LitElement {
 									<div class="list-checkbox">
 									<input type="checkbox" name="${item.basename}" value="${item.filename}"/>
 									</div>
-									<a class="list-rest" href="" @click="${(e) => this.navigate(item.filename, e)}">${item.basename}</a>
+									<a class="list-rest" href="" @click="${(e) => this.navigate(item.filename, e)}">${item.basename}${item.type=="directory"?"/":""}</a>
 								</li>`)}`
 						}
 						<li>
