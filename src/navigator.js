@@ -184,6 +184,12 @@ class Navigator extends LitElement {
 							}
 							this.path = path;
 							return this.updateComplete;
+						}).then(
+						() => {
+							// fire an event about folder change
+							return document.dispatchEvent(new CustomEvent("navigate", {"detail": {
+								'path': this.path
+							}}));
 						});
 				}
 				else throw new Error(`Does $path really exist?`);
