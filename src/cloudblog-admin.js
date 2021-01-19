@@ -59,8 +59,9 @@ class CloudBlogAdmin extends LitElement {
 		const title = window.prompt("Název nového článku");
 		const now = new Date();
 		const year = now.getFullYear();
-		const month = now.getMonth();		
-		const day = now.getDay();		
+		const month = now.getMonth();
+		const day = now.getDay();
+		if(!title) return;
 		let filename = slugify(title);
 		if(title.length > 48) {
 			filename = slugify(title.substring(0, title.indexOf(" ", 35)));
@@ -77,7 +78,7 @@ class CloudBlogAdmin extends LitElement {
 				             "který může být na více řádků jen nový řádek nesmí začínat slovem následovaným dvojtečkou.\n"+
 				             "Také nesmí obsahovat prázdný řádek",
 				"",
-				`Zde začíná váš nový článek. Až budete hotovi smažte řádku "Status: draft" nebo ji změňte na "Status: published"`
+				`Zde začíná váš nový článek. Používejte Markdown syntax. Až budete hotovi smažte řádek "Status: draft" nebo ho změňte na "Status: published"`
 			].join("\n")
 		}}));
 	}		
