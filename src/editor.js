@@ -74,6 +74,7 @@ class Editor extends LitElement {
 		this.editor = null;
 		this.filename = "";
 		this.dirty = false;
+		return this.requestUpdate();
 	}
 
 	render() {

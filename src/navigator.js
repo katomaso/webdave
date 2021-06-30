@@ -16,7 +16,7 @@ filename: "/dir1/dir11"
 lastmod: "Mon, 20 Apr 2020 19:30:46 GMT"
 size: 0
 type: "directory"}
-*/ 
+*/
 
 function matchHashOr(expression, defaultValue) {
 	const matched = window.location.hash.match(expression);
@@ -124,7 +124,7 @@ class Navigator extends LitElement {
 		this.url = url;
 		return new Promise(
 			(resolve, reject) => resolve(webdavClient(
-				this.url, 
+				this.url,
 				{"username": this.username, "password": this.password}))
 			).then(client => {
 				this.client = client;
@@ -156,7 +156,7 @@ class Navigator extends LitElement {
 	}
 
 	save(filename, content) {
-		return this.client.putFileContents(filename, content);
+		return this.client.putFileContents(filename, content).then(() => this.refresh());
 	}
 
 	navigate(path, event) {
@@ -251,7 +251,7 @@ class Navigator extends LitElement {
 		).then(() => this.refresh());
 	}
 
-	// Return list of selected filenames (absolute paths) 
+	// Return list of selected filenames (absolute paths)
 	selected() {
 		return Array.from(this.shadowRoot.querySelectorAll("input[type='checkbox']"))
 			.filter(i => i.name != "all" && i.checked)
@@ -264,7 +264,7 @@ class Navigator extends LitElement {
 			.querySelectorAll("input[type='checkbox']")
 			.forEach(i => i.checked==checked?checked:i.checked=checked);
 			// if the check status conforms to the main checked status than keep
-			// otherwise change	
+			// otherwise change
 	}
 	selectNone() {return this.toggleSelection({"target": {"checked": false}});}
 	selectAll() {return this.toggleSelection({"target": {"checked": true}});}
@@ -327,7 +327,7 @@ class Navigator extends LitElement {
 				font-size: 13pt;
 			}
 			li a.list-rest:hover {
-				background-color: #ccc;	
+				background-color: #ccc;
 			}
 			li input[type=checkbox] {
 				margin: 7px 7px;
@@ -357,7 +357,7 @@ class Navigator extends LitElement {
 						<li>
 							<label>Sort by</label>
 							<select name="sort" @change=${(e) => this.sort = e.target.value}>
-							${Navigator.sortOptions.map((option) => (this.sort == option) ? 
+							${Navigator.sortOptions.map((option) => (this.sort == option) ?
 								html`<option value="${option}" selected>${option}</option>` :
 								html`<option value="${option}">${option}</option>`
 							)}
