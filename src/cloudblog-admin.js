@@ -102,10 +102,10 @@ class CloudBlogAdmin extends LitElement {
 			"filename": "/.publish",
 			"content": ""
 		}}));
-		// if(!handled) {
-		// 	document.dispatchEvent(new CustomEvent("log:error", {detail: {message: "Publish event was not handled! Are you connected to the blog's content?"}}));
-		// 	return;
-		// }
+		if(!handled) {
+			document.dispatchEvent(new CustomEvent("log:error", {detail: {message: "Publish event was not handled! Are you connected to the blog's content?"}}));
+			return;
+		}
 		return fetch(this.url + "/.publish")
 			.then(response => response.body)
 			.then(stream => {
@@ -118,6 +118,9 @@ class CloudBlogAdmin extends LitElement {
 					// Read some more, and call this function again
 					return reader.read().then(processText);
 				});
+			})
+			.catch(error => {
+				document.dispatchEvent(new CustomEvent("log:error", {detail: {message: "Publishing failed because of " + error.toString()}}));
 			});
 	}
 

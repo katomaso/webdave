@@ -97,49 +97,64 @@ class Navigator extends LitElement {
 
 	connectHandler(event) {
 		if (this.connected) return;
+		let username, password, url;
 
 		if (event instanceof CustomEvent) {
-			return this.connect(event.username, event.password, event.url);
+			username = event.detail.username
+			password = event.detail.password
+			url = event.detail.url
 		} else if (event) {
 			stop(event);
-			return this.connect(
-				(event.target['username']).value,
-				(event.target['password']).value,
-				(event.target['url']).value
-			).then(() => {
+			username = (event.target['username']).value,
+			password = (event.target['password']).value,
+			url = (event.target['url']).value
+		}
+		if(url.endsWith("/")) {
+			url = url.substring(0, url.length-1)
+		}
+		return this.connect(username, password, url)
+			.catch(() => this.connect(username, password, url + "/webdav"))
+			.catch(() => this.connect(username, password, url + "/content"))
+			.catch(() => this.connect(username, password, url + "/files"))
+			.then(() => {
 				if(!this.connected) return;
-
-				return document.dispatchEvent(new CustomEvent("login", {"detail": {
+				document.dispatchEvent(new CustomEvent("login", {"detail": {
 					'username': this.username,
 					'password': this.password,
 					'url': this.url
 				}}));
+				return this.requestUpdate(); // to refresh form values
 			});
-		}
 	}
 
 	connect(username, password, url) {
-		this.username = username;
-		this.password = password;
-		this.url = url;
+		if (this.connected) return;
+
 		return new Promise(
 			(resolve, reject) => resolve(webdavClient(
-				this.url,
-				{"username": this.username, "password": this.password}))
+				url, {"username": username, "password": password}))
 			).then(client => {
 				this.client = client;
 				return client.stat("/");
 			})
 			.then(stat => {
 				this.connected = true;
+				this.username = username;
+				this.password = password;
+				this.url = url;
 				storeValue("navigator.username", this.username);
 				storeValue("navigator.url", this.url);
 				return this.navigate(this.path);
 			})
 			.catch(error => {
+				if(this.connected) return; // some of other connections suceeded
 				this.connected = false;
-				this.error("Connection failed", error);
-				return this.requestUpdate(); // to refresh form values
+				if (error.status == 401) {
+					this.error("Invalid credentials");
+				} else {
+					console.log(this.url + " is not a valid webdav endpoint");
+				}
+				throw error;
 			});
 	}
 
