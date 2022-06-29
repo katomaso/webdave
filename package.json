@@ -6,7 +6,7 @@
   "private": true,
   "dependencies": {
     "codemirror": "^5.50.0",
-    "lit-element": "^2.2.1",
+    "lit": "^2.0.2",
     "webdav": "^4.2.1"
   },
   "devDependencies": {

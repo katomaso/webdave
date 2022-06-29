@@ -1,0 +1,4 @@
+{
+    "experimentalDecorators": true,
+    "include": ["src/*"]
+}

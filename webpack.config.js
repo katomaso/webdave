@@ -4,10 +4,11 @@ const path = require('path');
 module.exports = {
 	mode: "development",
 	entry: {
-		"webdav-navigator": "./src/navigator.js",
-		"webdav-editor": "./src/editor.js",
+		"webdav-navigator": "./src/webdav-navigator.js",
+		"text-editor": "./src/text-editor.js",
 		"vtcn-logger": "./src/logger.js",
-		"cloudblog-admin": "./src/cloudblog-admin.js"
+		"cloudblog-editor": "./src/cloudblog-editor.js",
+		"cloudblog-publisher": "./src/cloudblog-publisher.js"
 	},
 	plugins: [
 		new CopyPlugin([{from: "static"}])

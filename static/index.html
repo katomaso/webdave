@@ -1,26 +1,16 @@
 <!doctype html>
 <html>
   <head>
-    <title>Editor@WebDAV</title>
+    <meta charset="utf-8">
+    <title>Cloudblog Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <style>
-        html {width: 100%; height:100%; margin:0;}
-        body {display: flex; width: 100%; height:100%; margin:0;}
-        vtcn-logger{position: absolute; right:0;}
+        html, body, cloudblog-admin {width: 100%; height:100%; margin:0;}
+        cloudblog-admin {display: flex; flex-direction: column; justify-content: center; align-items: center;}
     </style>
-    <script src="vtcn-logger.js"></script>
-    <script src="webdav-navigator.js"></script>
-    <script src="webdav-editor.js"></script>
     <script src="cloudblog-admin.js"></script>
   </head>
   <body>
-    <vtcn-logger timeout="5000"></vtcn-logger>
-    <div style="flex: 1">
-        <webdav-navigator></webdav-navigator>
-        <br>
-        <cloudblog-admin></cloudblog-admin>
-    </div>
-    <div style="max-width: 70%; flex: 4;">
-        <webdav-editor></webdav-editor>
-    </div>
+    <cloudblog-admin></cloudblog-admin>    
   </body>
 </html>
